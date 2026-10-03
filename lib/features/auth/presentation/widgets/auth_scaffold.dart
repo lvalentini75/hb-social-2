@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hb_social/core/theme/app_theme.dart';
+import 'package:hb_social/core/router/app_router.dart';
 import 'package:hb_social/core/widgets/hb_logo.dart';
 
 /// Shared layout for the Login and Signup screens: a back button, the HB
@@ -25,7 +26,7 @@ class AuthScaffold extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => context.canPop() ? context.pop() : context.go('/welcome'),
+                    onPressed: () => context.canPop() ? context.pop() : context.go(AppRoutes.welcome),
                     icon: const Icon(Icons.arrow_back_rounded, color: LightModeColors.lightOnSurface),
                   ),
                 ],

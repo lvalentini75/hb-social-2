@@ -10,6 +10,8 @@ class WelcomeValueProps extends StatelessWidget {
   final Color iconBackground;
   final Color textColor;
   final CrossAxisAlignment alignment;
+  final double fontSize;
+  final FontWeight fontWeight;
 
   const WelcomeValueProps({
     super.key,
@@ -17,21 +19,31 @@ class WelcomeValueProps extends StatelessWidget {
     required this.iconBackground,
     required this.textColor,
     this.alignment = CrossAxisAlignment.start,
+    this.fontSize = FontSizes.bodyLarge,
+    this.fontWeight = FontWeight.w400,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: alignment,
+    // Each row is always left-aligned internally so the icons form a single
+    // vertical column; when a centered block is requested, the whole column
+    // is centered as one unit via IntrinsicWidth instead of centering each
+    // row independently (which would misalign the icons).
+    final column = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        _ValueProp(icon: Icons.calendar_month_outlined, label: 'welcome.value_calendar'.tr(), iconColor: iconColor, iconBackground: iconBackground, textColor: textColor, alignment: alignment),
+        _ValueProp(icon: Icons.calendar_month_outlined, label: 'welcome.value_calendar'.tr(), iconColor: iconColor, iconBackground: iconBackground, textColor: textColor, fontSize: fontSize, fontWeight: fontWeight),
         const SizedBox(height: AppSpacing.lg),
-        _ValueProp(icon: Icons.map_outlined, label: 'welcome.value_maps'.tr(), iconColor: iconColor, iconBackground: iconBackground, textColor: textColor, alignment: alignment),
+        _ValueProp(icon: Icons.map_outlined, label: 'welcome.value_maps'.tr(), iconColor: iconColor, iconBackground: iconBackground, textColor: textColor, fontSize: fontSize, fontWeight: fontWeight),
         const SizedBox(height: AppSpacing.lg),
-        _ValueProp(icon: Icons.groups_outlined, label: 'welcome.value_community'.tr(), iconColor: iconColor, iconBackground: iconBackground, textColor: textColor, alignment: alignment),
+        _ValueProp(icon: Icons.groups_outlined, label: 'welcome.value_community'.tr(), iconColor: iconColor, iconBackground: iconBackground, textColor: textColor, fontSize: fontSize, fontWeight: fontWeight),
       ],
     );
+    if (alignment == CrossAxisAlignment.center) {
+      return Center(child: IntrinsicWidth(child: column));
+    }
+    return column;
   }
 }
 
@@ -41,7 +53,8 @@ class _ValueProp extends StatelessWidget {
   final Color iconColor;
   final Color iconBackground;
   final Color textColor;
-  final CrossAxisAlignment alignment;
+  final double fontSize;
+  final FontWeight fontWeight;
 
   const _ValueProp({
     required this.icon,
@@ -49,14 +62,14 @@ class _ValueProp extends StatelessWidget {
     required this.iconColor,
     required this.iconBackground,
     required this.textColor,
-    required this.alignment,
+    required this.fontSize,
+    required this.fontWeight,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isCentered = alignment == CrossAxisAlignment.center;
     return Row(
-      mainAxisSize: isCentered ? MainAxisSize.min : MainAxisSize.max,
+      mainAxisSize: MainAxisSize.max,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
@@ -70,7 +83,7 @@ class _ValueProp extends StatelessWidget {
         Flexible(
           child: Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(label, style: context.textStyles.bodyLarge?.withColor(textColor)),
+            child: Text(label, style: context.textStyles.bodyLarge?.copyWith(color: textColor, fontSize: fontSize, fontWeight: fontWeight)),
           ),
         ),
       ],

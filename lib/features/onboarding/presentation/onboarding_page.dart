@@ -4,9 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hb_social/core/router/app_router.dart';
 import 'package:hb_social/core/theme/app_theme.dart';
-import 'package:hb_social/core/widgets/app_buttons.dart';
+import 'package:hb_social/core/widgets/hb_button.dart';
 import 'package:hb_social/core/widgets/hb_logo.dart';
-import 'package:hb_social/features/auth/providers/user_providers.dart';
 import 'package:hb_social/features/onboarding/presentation/widgets/onboarding_step_header.dart';
 import 'package:hb_social/features/onboarding/presentation/widgets/step_follow.dart';
 import 'package:hb_social/features/onboarding/presentation/widgets/step_interests.dart';
@@ -53,17 +52,15 @@ class OnboardingPage extends ConsumerWidget {
 
     final isLastStep = state.step == 2;
 
-    Future<void> handlePrimaryAction() async {
+    // There is no account yet (see docs/DECISIONS.md): this step only resets
+    // the local wizard state and returns to the home shell.
+    void handlePrimaryAction() {
       if (!isLastStep) {
         notifier.nextStep();
         return;
       }
-      await ref.read(currentUserProvider.notifier).completeOnboarding(
-            countryCode: state.countryCode ?? '',
-            regionCode: state.regionCode,
-            interestIds: state.interestIds.toList(),
-          );
-      if (context.mounted) context.go(AppRoutes.home);
+      notifier.reset();
+      context.go(AppRoutes.home);
     }
 
     return Scaffold(
@@ -117,7 +114,7 @@ class OnboardingPage extends ConsumerWidget {
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 480),
-                  child: AppPrimaryButton(
+                  child: HBButton.primary(
                     label: isLastStep ? 'common.finish'.tr() : 'common.next'.tr(),
                     onPressed: _canProceed(state) ? handlePrimaryAction : null,
                   ),

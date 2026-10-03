@@ -13,9 +13,8 @@ class SidebarNavTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return Material(
-      color: isActive ? colors.primaryContainer : Colors.transparent,
+      color: isActive ? LightModeColors.lightPrimarySoft : Colors.transparent,
       borderRadius: BorderRadius.circular(AppRadius.sm),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -24,13 +23,13 @@ class SidebarNavTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 10),
           child: Row(
             children: [
-              Icon(icon, size: 22, color: isActive ? colors.primary : LightModeColors.lightOnSurfaceVariant),
+              Icon(icon, size: 22, color: isActive ? LightModeColors.lightForest : LightModeColors.lightOnSurfaceVariant),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   label,
                   overflow: TextOverflow.ellipsis,
-                  style: context.textStyles.bodyMedium?.withColor(isActive ? colors.primary : LightModeColors.lightOnSurface).copyWith(
+                  style: context.textStyles.bodyMedium?.withColor(isActive ? LightModeColors.lightForest : LightModeColors.lightOnSurface).copyWith(
                         fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
                       ),
                 ),

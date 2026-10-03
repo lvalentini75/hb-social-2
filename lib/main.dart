@@ -5,21 +5,23 @@ import 'package:hb_social/core/config/app_config.dart';
 import 'package:hb_social/core/l10n/app_locales.dart';
 import 'package:hb_social/core/router/app_router.dart';
 import 'package:hb_social/core/theme/app_theme.dart';
-import 'package:hb_social/features/auth/providers/user_providers.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 /// Main entry point for HB Social.
 ///
 /// This sets up:
 /// - easy_localization for multilingual support (default locale: Italian)
-/// - Riverpod for state management, with SharedPreferences injected for
-///   local-only persistence until the Supabase backend is connected
+/// - intl date formatting data for every supported locale (used by the Home
+///   greeting header's date line)
+/// - Riverpod for state management
 /// - go_router navigation
 /// - Material 3 theming with the HB Social brand palette
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
-  final prefs = await SharedPreferences.getInstance();
+  for (final locale in AppLocales.supported) {
+    await initializeDateFormatting(locale.languageCode);
+  }
 
   runApp(
     EasyLocalization(
@@ -27,10 +29,7 @@ void main() async {
       path: AppLocales.translationsPath,
       fallbackLocale: AppLocales.fallback,
       startLocale: AppLocales.it,
-      child: ProviderScope(
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-        child: const MyApp(),
-      ),
+      child: const ProviderScope(child: MyApp()),
     ),
   );
 }

@@ -1,29 +1,28 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hb_social/core/router/app_router.dart';
 import 'package:hb_social/core/theme/app_theme.dart';
-import 'package:hb_social/core/widgets/app_buttons.dart';
-import 'package:hb_social/core/widgets/app_text_field.dart';
-import 'package:hb_social/core/widgets/social_auth_buttons.dart';
+import 'package:hb_social/core/widgets/hb_button.dart';
+import 'package:hb_social/core/widgets/hb_input.dart';
+import 'package:hb_social/features/auth/presentation/widgets/auth_notice.dart';
 import 'package:hb_social/features/auth/presentation/widgets/auth_scaffold.dart';
-import 'package:hb_social/features/auth/providers/user_providers.dart';
 
-class LoginPage extends ConsumerStatefulWidget {
+/// Sign-in form. There is no authentication backend yet (see
+/// `docs/DECISIONS.md`): the primary button only surfaces the notice telling
+/// the user that sign-in activates with Supabase (P03). Nothing is stored,
+/// no session is simulated and no navigation into the app happens here.
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
-  final _formKey = GlobalKey<FormState>();
+class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isSubmitting = false;
-  String? _errorText;
+  bool _showNotice = false;
 
   @override
   void dispose() {
@@ -32,101 +31,44 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    setState(() => _errorText = null);
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isSubmitting = true);
-    try {
-      final success = ref.read(currentUserProvider.notifier).logIn(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
-      if (!mounted) return;
-      if (success) {
-        final user = ref.read(currentUserProvider);
-        if (user != null && user.onboardingCompleted) {
-          context.go(AppRoutes.home);
-        } else {
-          context.go(AppRoutes.onboarding);
-        }
-      } else {
-        setState(() => _errorText = 'login.error_invalid'.tr());
-      }
-    } catch (e) {
-      debugPrint('Login failed: $e');
-      setState(() => _errorText = 'login.error_invalid'.tr());
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return AuthScaffold(
       title: 'login.title'.tr(),
       subtitle: 'login.subtitle'.tr(),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AppTextField(
-              label: 'login.email'.tr(),
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'validation.email_required'.tr();
-                if (!value.contains('@') || !value.contains('.')) return 'validation.email_invalid'.tr();
-                return null;
-              },
-            ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          HBInput(
+            label: 'login.email'.tr(),
+            hint: 'login.email_hint'.tr(),
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            prefixIcon: const Icon(Icons.mail_outline_rounded, color: LightModeColors.lightOnSurfaceVariant),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          HBInput(
+            label: 'login.password'.tr(),
+            hint: 'login.password_hint'.tr(),
+            controller: _passwordController,
+            obscureText: true,
+            prefixIcon: const Icon(Icons.lock_outline_rounded, color: LightModeColors.lightOnSurfaceVariant),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          HBButton.primary(label: 'login.login_button'.tr(), onPressed: () => setState(() => _showNotice = true)),
+          if (_showNotice) ...[
             const SizedBox(height: AppSpacing.md),
-            AppTextField(
-              label: 'login.password'.tr(),
-              controller: _passwordController,
-              obscureText: true,
-              validator: (value) {
-                if (value == null || value.isEmpty) return 'validation.password_required'.tr();
-                return null;
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Align(
-              alignment: Alignment.centerRight,
-              child: AppTextLink(label: 'login.forgot_password'.tr(), onPressed: () {}),
-            ),
-            if (_errorText != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Text(_errorText!, style: context.textStyles.bodySmall?.withColor(colors.error)),
-            ],
-            const SizedBox(height: AppSpacing.lg),
-            AppPrimaryButton(label: 'login.login_button'.tr(), onPressed: _submit, isLoading: _isSubmitting),
-            const SizedBox(height: AppSpacing.xl),
-            Row(
-              children: [
-                Expanded(child: Divider(color: colors.outline)),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                  child: Text('welcome.or_continue_with'.tr(), style: context.textStyles.bodySmall?.withColor(colors.onSurfaceVariant)),
-                ),
-                Expanded(child: Divider(color: colors.outline)),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const SocialAuthButtons(),
-            const SizedBox(height: AppSpacing.xl),
-            Center(
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                children: [
-                  Text('${'login.no_account'.tr()} ', style: context.textStyles.bodyMedium?.withColor(colors.onSurfaceVariant)),
-                  AppTextLink(label: 'login.signup_link'.tr(), onPressed: () => context.pushReplacement(AppRoutes.signup)),
-                ],
-              ),
-            ),
+            const AuthNotice(),
           ],
-        ),
+          const SizedBox(height: AppSpacing.lg),
+          Center(
+            child: HBButton.ghost(
+              label: 'login.signup_link'.tr(),
+              size: HBButtonSize.sm,
+              onPressed: () => context.go(AppRoutes.signup),
+            ),
+          ),
+        ],
       ),
     );
   }

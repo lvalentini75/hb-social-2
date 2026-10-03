@@ -21,8 +21,9 @@ class WelcomePage extends StatelessWidget {
           builder: (context, constraints) {
             final isWide = constraints.maxWidth >= AppBreakpoints.mobile;
             final actions = WelcomeActions(
-              onCreateAccount: () => context.push(AppRoutes.signup),
-              onLogin: () => context.push(AppRoutes.login),
+              onCreateAccount: () => context.go(AppRoutes.signup),
+              onLogin: () => context.go(AppRoutes.login),
+              onExploreApp: () => context.go(AppRoutes.home),
             );
             if (isWide) {
               return Row(
@@ -31,10 +32,30 @@ class WelcomePage extends StatelessWidget {
                   Expanded(
                     child: Center(
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 420),
+                        constraints: const BoxConstraints(maxWidth: 400),
                         child: SingleChildScrollView(
                           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.xxl),
-                          child: actions,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Center(child: HbLogo(size: 72)),
+                              const SizedBox(height: AppSpacing.lg),
+                              Text(
+                                'welcome.title'.tr(),
+                                textAlign: TextAlign.center,
+                                style: context.textStyles.headlineMedium,
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                'welcome.subtitle'.tr(),
+                                textAlign: TextAlign.center,
+                                style: context.textStyles.bodyMedium?.withColor(LightModeColors.lightOnSurfaceVariant),
+                              ),
+                              const SizedBox(height: AppSpacing.xl),
+                              actions,
+                            ],
+                          ),
                         ),
                       ),
                     ),
