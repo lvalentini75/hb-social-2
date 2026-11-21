@@ -1,23 +1,38 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
-import 'package:hb_social/features/search/data/empty_search_repository.dart';
+import 'package:hb_social/core/services/supabase_client_provider.dart';
 import 'package:hb_social/features/search/data/search_repository.dart';
 import 'package:hb_social/features/search/domain/search_result.dart';
+import 'package:hb_social/features/marketplace/providers/marketplace_providers.dart';
 
-/// Swap this override once a Supabase-backed [SearchRepository] exists (P03/P04).
-final searchRepositoryProvider = Provider<SearchRepository>((ref) => const EmptySearchRepository());
+final searchRepositoryProvider = Provider<SearchRepository>((ref) => SearchRepository(ref.watch(supabaseClientProvider)));
 
-/// The text currently typed in the search field.
-final searchQueryProvider = StateProvider<String>((ref) => '');
-
-/// The category filter currently selected.
-final searchCategoryProvider = StateProvider<SearchCategory>((ref) => SearchCategory.all);
-
-/// Results for the current query/category. Always empty until P03/P04; the
-/// UI already renders loading, error and empty states for this provider.
-final searchResultsProvider = FutureProvider.autoDispose<List<SearchResult>>((ref) async {
-  final query = ref.watch(searchQueryProvider);
-  final category = ref.watch(searchCategoryProvider);
-  final repository = ref.watch(searchRepositoryProvider);
-  return repository.search(query: query, category: category);
+final searchOverviewProvider = FutureProvider.autoDispose.family<SearchOverview, String>((ref, query) async {
+  final value = await ref.watch(searchRepositoryProvider).searchAll(query);
+  if (ref.watch(firearmsShowcaseEnabledProvider)) return value;
+  return SearchOverview({for (final entry in value.sections.entries) entry.key: entry.value.where((item) => item.category != SearchCategory.listings || item.extra['is_mediated'] != true).toList()});
 });
+
+final searchTypeProvider = FutureProvider.autoDispose.family<SearchPageResult, SearchRequest>((ref, request) async {
+  final value = await ref.watch(searchRepositoryProvider).searchType(query: request.query, category: request.category, offset: request.offset);
+  if (ref.watch(firearmsShowcaseEnabledProvider)) return value;
+  return SearchPageResult(items: value.items.where((item) => item is! SearchCommunityResult || !item.isMediated).toList(), hasMore: value.hasMore);
+});
+
+final trendingHashtagsProvider = FutureProvider.autoDispose<List<SearchHashtag>>((ref) => ref.watch(searchRepositoryProvider).trendingHashtags());
+
+final recentSearchesProvider = AsyncNotifierProvider<RecentSearchesNotifier, List<String>>(RecentSearchesNotifier.new);
+
+class RecentSearchesNotifier extends AsyncNotifier<List<String>> {
+  SearchRepository get _repository => ref.read(searchRepositoryProvider);
+
+  @override
+  Future<List<String>> build() => _repository.recentQueries();
+
+  Future<void> add(String query) async => state = AsyncData(await _repository.saveRecent(query));
+  Future<void> remove(String query) async => state = AsyncData(await _repository.removeRecent(query));
+
+  Future<void> clear() async {
+    await _repository.clearRecent();
+    state = const AsyncData([]);
+  }
+}

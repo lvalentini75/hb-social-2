@@ -9,12 +9,17 @@ class AdminDataTable extends StatelessWidget {
   final String emptyMessage;
   final bool isLoading;
   final List<double>? columnWidths;
+  final List<VoidCallback?> rowCallbacks;
+  final int compactColumnCount;
 
-  const AdminDataTable({super.key, required this.headers, required this.rows, required this.emptyMessage, this.isLoading = false, this.columnWidths});
+  const AdminDataTable({super.key, required this.headers, required this.rows, required this.emptyMessage, this.isLoading = false, this.columnWidths, this.rowCallbacks = const [], this.compactColumnCount = 3});
 
   @override
   Widget build(BuildContext context) {
-    final widths = columnWidths ?? List<double>.filled(headers.length, 148);
+    final visibleCount = MediaQuery.sizeOf(context).width < 900 ? compactColumnCount.clamp(1, headers.length) : headers.length;
+    final visibleHeaders = headers.take(visibleCount).toList();
+    final visibleRows = rows.map((row) => row.take(visibleCount).toList()).toList();
+    final widths = (columnWidths ?? List<double>.filled(headers.length, 148)).take(visibleCount).toList();
     final totalWidth = widths.fold<double>(0, (sum, width) => sum + width);
     return LayoutBuilder(
       builder: (context, constraints) => SingleChildScrollView(
@@ -25,15 +30,15 @@ class AdminDataTable extends StatelessWidget {
             children: [
               SizedBox(
                 height: 36,
-                child: Row(children: [for (var i = 0; i < headers.length; i++) SizedBox(width: totalWidth < constraints.maxWidth ? constraints.maxWidth / headers.length : widths[i], child: AdminTableHeader(label: headers[i]))]),
+               child: Row(children: [for (var i = 0; i < visibleHeaders.length; i++) SizedBox(width: totalWidth < constraints.maxWidth ? constraints.maxWidth / visibleHeaders.length : widths[i], child: AdminTableHeader(label: visibleHeaders[i]))]),
               ),
               const Divider(),
               if (isLoading)
-                for (var row = 0; row < 4; row++) AdminTableSkeletonRow(columnCount: headers.length, widths: widths, availableWidth: constraints.maxWidth)
-              else if (rows.isEmpty)
+                 for (var row = 0; row < 4; row++) AdminTableSkeletonRow(columnCount: visibleHeaders.length, widths: widths, availableWidth: constraints.maxWidth)
+               else if (visibleRows.isEmpty)
                 SizedBox(height: 96, child: Center(child: Text(emptyMessage, style: context.textStyles.bodySmall?.withColor(LightModeColors.lightOnSurfaceVariant))))
               else
-                for (final row in rows) AdminTableRow(cells: row, widths: widths, availableWidth: constraints.maxWidth),
+                 for (var index = 0; index < visibleRows.length; index++) AdminTableRow(cells: visibleRows[index], widths: widths, availableWidth: constraints.maxWidth, onTap: index < rowCallbacks.length ? rowCallbacks[index] : null),
             ],
           ),
         ),
@@ -50,7 +55,7 @@ class AdminTableHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-    child: Align(alignment: Alignment.centerLeft, child: Text(label.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis, style: context.textStyles.labelSmall?.withColor(LightModeColors.lightTextTertiary).copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.6))),
+    child: Align(alignment: Alignment.centerLeft, child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.textStyles.labelMedium?.withColor(LightModeColors.lightTextTertiary).copyWith(fontWeight: FontWeight.w600))),
   );
 }
 
@@ -58,16 +63,16 @@ class AdminTableRow extends StatelessWidget {
   final List<Widget> cells;
   final List<double> widths;
   final double availableWidth;
+  final VoidCallback? onTap;
 
-  const AdminTableRow({super.key, required this.cells, required this.widths, required this.availableWidth});
+  const AdminTableRow({super.key, required this.cells, required this.widths, required this.availableWidth, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final totalWidth = widths.fold<double>(0, (sum, width) => sum + width);
-    return Container(
-      height: 44,
-      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: LightModeColors.lightDivider))),
-      child: Row(children: [for (var i = 0; i < cells.length; i++) SizedBox(width: totalWidth < availableWidth ? availableWidth / cells.length : widths[i], child: Padding(padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm), child: Align(alignment: Alignment.centerLeft, child: cells[i])))]),
+    return InkWell(
+      onTap: onTap,
+      child: Container(height: 52, decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: LightModeColors.lightDivider))), child: Row(children: [for (var i = 0; i < cells.length; i++) SizedBox(width: totalWidth < availableWidth ? availableWidth / cells.length : widths[i], child: Padding(padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm), child: Align(alignment: Alignment.centerLeft, child: cells[i])))])),
     );
   }
 }

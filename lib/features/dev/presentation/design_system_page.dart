@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hb_social/core/config/env.dart';
 import 'package:hb_social/core/theme/app_theme.dart';
 import 'package:hb_social/core/widgets/hb_avatar.dart';
 import 'package:hb_social/core/widgets/hb_badge.dart';
@@ -14,7 +13,6 @@ import 'package:hb_social/core/widgets/hb_input.dart';
 import 'package:hb_social/core/widgets/hb_segmented_tabs.dart';
 import 'package:hb_social/core/widgets/hb_skeleton.dart';
 import 'package:hb_social/core/widgets/hb_status_chip.dart';
-import 'package:hb_social/features/admin/providers/admin_preview_provider.dart';
 
 /// Developer-only gallery of every design token and HB* widget, reachable at
 /// `/dev/design-system` in debug builds. Labels here are intentionally not
@@ -207,32 +205,11 @@ class _DesignSystemPageState extends ConsumerState<DesignSystemPage> {
                   ],
                 ),
               ),
-               _Section(
-                 title: 'Console admin',
-                 child: Wrap(
-                   spacing: AppSpacing.sm,
-                   runSpacing: AppSpacing.sm,
-                   children: [
-                     HBButton.secondary(label: 'Pannello utente', onPressed: () => _openAdminPreview('/admin/users?panel=user')),
-                     HBButton.secondary(label: 'Pannello segnalazione', onPressed: () => _openAdminPreview('/admin/reports?panel=report')),
-                     HBButton.secondary(label: 'Pannello richiesta badge', onPressed: () => _openAdminPreview('/admin/badges?panel=badge')),
-                      HBButton.secondary(label: 'Anteprima approvazione', onPressed: () => _openAdminPreview('/admin/approvals?panel=approval')),
-                      HBButton.secondary(label: 'Anteprima calendario', onPressed: () => _openAdminPreview('/admin/calendars?panel=calendar')),
-                      HBButton.secondary(label: 'Ruoli e permessi', onPressed: () => _openAdminPreview('/admin/roles')),
-                   ],
-                 ),
-               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  void _openAdminPreview(String location) {
-    if (!Env.previewEnabled) return;
-    ref.read(adminPreviewProvider.notifier).state = true;
-    context.go(location);
   }
 }
 

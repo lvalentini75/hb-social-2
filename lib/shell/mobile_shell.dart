@@ -14,20 +14,18 @@ class MobileShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return ColoredBox(color: LightModeColors.pageMobile, child: SafeArea(
       bottom: false,
       child: Column(
         children: [
           MobileTopBar(onDestinationSelected: onDestinationSelected),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: child,
-            ),
-          ),
+          // No horizontal padding here: narrow layouts are edge-to-edge and
+          // every page applies its own gutters through `PageColumns`, so
+          // media can span the full width like a native social feed.
+          Expanded(child: child),
           AppBottomNav(currentIndex: currentIndex, onDestinationSelected: onDestinationSelected),
         ],
       ),
-    );
+    ));
   }
 }

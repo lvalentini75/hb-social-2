@@ -17,9 +17,13 @@ class HBInput extends StatefulWidget {
   final int? maxLength;
   final List<TextInputFormatter>? inputFormatters;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
   final String? Function(String?)? validator;
   final bool enabled;
   final int maxLines;
+  final int? minLines;
+  final bool autofocus;
+  final bool search;
 
   const HBInput({
     super.key,
@@ -34,9 +38,13 @@ class HBInput extends StatefulWidget {
     this.maxLength,
     this.inputFormatters,
     this.onChanged,
+    this.onSubmitted,
     this.validator,
     this.enabled = true,
     this.maxLines = 1,
+    this.minLines,
+    this.autofocus = false,
+    this.search = false,
   });
 
   @override
@@ -71,16 +79,14 @@ class _HBInputState extends State<HBInput> {
           const SizedBox(height: AppSpacing.xs),
         ],
         AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
+          duration: AppMotion.of(context).base,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: BorderRadius.circular(widget.search ? AppRadius.pill : AppRadius.xs),
             border: Border.all(
-              color: hasError ? LightModeColors.lightError : (_isFocused ? LightModeColors.lightPrimaryOutline : Colors.transparent),
-              width: 1.5,
+              color: hasError ? LightModeColors.lightError : (_isFocused ? LightModeColors.lightPrimary : LightModeColors.lightBorder),
+              width: _isFocused ? 1.5 : 1,
             ),
-            boxShadow: _isFocused && !hasError
-                ? [BoxShadow(color: LightModeColors.lightPrimarySoft, blurRadius: 0, spreadRadius: 3)]
-                : null,
+            boxShadow: null,
           ),
           child: TextFormField(
             enabled: widget.enabled,
@@ -91,15 +97,18 @@ class _HBInputState extends State<HBInput> {
             maxLength: widget.maxLength,
             inputFormatters: widget.inputFormatters,
             onChanged: widget.onChanged,
+            onFieldSubmitted: widget.onSubmitted,
             validator: widget.validator,
             maxLines: widget.obscureText ? 1 : widget.maxLines,
+            minLines: widget.obscureText ? 1 : widget.minLines,
+            autofocus: widget.autofocus,
             style: context.textStyles.bodyLarge?.withColor(LightModeColors.lightOnSurface),
             decoration: InputDecoration(
               hintText: widget.hint,
               hintStyle: context.textStyles.bodyLarge?.withColor(LightModeColors.lightTextTertiary),
               filled: true,
-              fillColor: LightModeColors.lightSurfaceVariant,
-              prefixIcon: widget.prefixIcon,
+              fillColor: widget.search ? LightModeColors.lightBackground : LightModeColors.lightSurface,
+              prefixIcon: widget.search ? (widget.prefixIcon ?? const Icon(Icons.search_rounded)) : widget.prefixIcon,
               counterText: '',
               suffixIcon: widget.obscureText
                   ? IconButton(
@@ -110,13 +119,13 @@ class _HBInputState extends State<HBInput> {
                       onPressed: () => setState(() => _obscure = !_obscure),
                     )
                   : widget.suffixIcon,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: BorderSide.none),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: BorderSide.none),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: BorderSide.none),
-              errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: BorderSide.none),
-              focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: BorderSide.none),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(widget.search ? AppRadius.pill : AppRadius.xs), borderSide: BorderSide.none),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(widget.search ? AppRadius.pill : AppRadius.xs), borderSide: BorderSide.none),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(widget.search ? AppRadius.pill : AppRadius.xs), borderSide: BorderSide.none),
+              errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(widget.search ? AppRadius.pill : AppRadius.xs), borderSide: BorderSide.none),
+              focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(widget.search ? AppRadius.pill : AppRadius.xs), borderSide: BorderSide.none),
               errorStyle: const TextStyle(height: 0, fontSize: 0),
-              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 11),
             ),
           ),
         ),

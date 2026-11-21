@@ -11,12 +11,19 @@ class AppSpacing {
 /// Responsive layout breakpoints and fixed column widths used by the shell.
 class AppBreakpoints {
   static const double mobile = 900.0;
-  static const double sidebarWidth = 260.0;
-  static const double headerHeight = 64.0;
-  static const double feedMaxWidth = 880.0;
-  static const double railWidth = 340.0;
 
-  /// Below this width a page's right-hand [PageColumns] rail is dropped
-  /// entirely (never stacked below the center column).
-  static const double railBreakpoint = 1200.0;
+  /// PD4 navigation column: 240 px card inside a 20 px outer gutter.
+  static const double sidebarWidth = 240.0;
+  static const double pageGutter = 20.0;
+  static const double headerHeight = 64.0;
+  static const double mobileHeaderHeight = 56.0;
+  static const double feedMaxWidth = 880.0;
+  static const double feedMinWidth = 600.0;
+
+  /// PD4 right rail: 368 px with a 16 px gap from the center column.
+  static const double railWidth = 368.0;
+  static const double columnGap = 16.0;
+
+  /// Below this width the right rail disappears.
+  static const double railBreakpoint = 1280.0;
 }

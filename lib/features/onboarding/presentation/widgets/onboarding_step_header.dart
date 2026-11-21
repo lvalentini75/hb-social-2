@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:hb_social/core/config/app_config.dart';
 import 'package:hb_social/core/theme/app_theme.dart';
 
 /// Step progress indicator + title/subtitle shared by all three onboarding
@@ -9,13 +8,13 @@ class OnboardingStepHeader extends StatelessWidget {
   final int step;
   final String title;
   final String subtitle;
+  final int total;
 
-  const OnboardingStepHeader({super.key, required this.step, required this.title, required this.subtitle});
+  const OnboardingStepHeader({super.key, required this.step, required this.title, required this.subtitle, this.total = 4});
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    const total = AppConfig.onboardingStepCount;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [

@@ -1,5 +1,7 @@
 # HB Social 2.0 — Roadmap (single development track)
 
+**Modello economico (16/10/2026):** app gratuita, ricavi solo dalla pubblicità fatturata a posteriori (carta salvata, addebito a soglia come Meta); nessun abbonamento, nessun wallet prepagato, nessuna commissione sulle vendite.
+
 One prompt = one feature = one commit. The CURRENT prompt is named in `docs/STATUS.md`. Work on nothing else.
 Acceptance = the test that closes the prompt. A prompt without a passing acceptance is not done.
 
@@ -17,12 +19,12 @@ Order chosen by the owner: graphics first (app, then admin console) with designe
 ## Phase 1 — Social core (weeks 5–11) → gate: closed beta ready
 | # | Prompt | Produces | Acceptance |
 |---|---|---|---|
-| P06 | Full auth + onboarding | Google, Apple, Facebook, MFA TOTP, 18+ gate, interests → suggestions | Login with 4 providers on web and device |
+| P06 | Full auth + onboarding | MFA TOTP, 18+ gate, interests → suggestions | Email signup completes the 18+ onboarding; MFA and recovery work |
 | P07 | Profile edit + badge request | Avatar/cover upload, bio, username uniqueness, verification request to private bucket | Upload works; request visible in DB; doc invisible to non-admins |
 | P08 | Rich content | 6 reactions, hashtags, mentions (+notification), polls, share-with-comment, triggers | pgTAP on visibility; counters coherent |
 | P09 | Composer + feed complete | Text/photo/video/poll/check-in composer, cursor pagination, Per te / Seguiti / Vicino | 20 posts created from UI; infinite scroll; broken video does not break feed |
 | P10 | Comments | Replies (2 levels), likes, mentions, inline on web / sheet on mobile | Reply works; live counter |
-| P11 | Stories | Photo + video, viewer, highlights, views | 15s video plays on web and mobile; expires at 24h |
+| P11 | Stories | Photo + video, viewer, highlights, views + P11c editor foto stories: testo e adesivi | 15s video plays on web and mobile; expires at 24h |
 | P12 | Social graph | Follow, friend requests, suggestions by interests/region | Suggestions change with interests |
 | P13 | Search | Postgres full-text (tsvector, GIN) over people, posts, hashtags, groups, listings, forums | "beccac" finds all types < 200 ms on 10k posts |
 | P14 | Notifications + push | Center, badge, FCM/APNs via Edge Function (outside lane) | Like on phone A → push on phone B within 5 s |
@@ -58,11 +60,11 @@ Order chosen by the owner: graphics first (app, then admin console) with designe
 | P32 | Marketplace full | Closed categories, municipalities, filters, guided create, detail, my listings, seller reviews, multi-currency display | Listing from mobile visible on web with converted price |
 | P33 | Firearms as mediated showcase | No in-app payment on arms/ammo, contact only via verified gun shop, license badge required, per-country policy | User without badge sees no contacts |
 | P34 | Orders + payments | Stripe Checkout, order states, disputes, platform fee, Stripe Connect payouts in seller currency | Test order paid → shipped → completed; idempotent webhook |
-| P35 | Wallet + Pro | User wallet, Pro via RevenueCat (stores) and Stripe (web), benefits | Sandbox subscription activates benefits < 1 min |
-| P36 | Ads schema | Accounts, members, campaign/adset/ad, creatives, audiences, placements, wallet billing, review, tracking | pgTAP on account roles |
-| P37 | Ads Manager UI | 6-step wizard, KPI dashboard, campaigns, audiences, creatives, billing, reports | Campaign created from wizard visible in admin review |
-| P38 | Ads delivery | Selection, ranking, frequency cap, pacing, budget consumption, client+server tracking, "Why this ad" | Impressions/clicks decrement wallet; cap respected |
-| P39 | Boost + placements | 1-click boost; native sponsored cards in feed, marketplace, events, right rail | Boosted post shown as sponsored to another user |
+| P35 | Fatturazione inserzioni (parte 1) | Carta salvata via Stripe (solo web), pagina Fatturazione, commissioni a zero, console limiti e soglie | Carta di prova salvata e visibile; `pm_remove` rifiutata se la carta è in uso |
+| P36 | Ads schema | Account, membri, campagne/ad set/annunci, creatività, audience, placement, addebito a soglia sulla carta salvata, review e tracking | pgTAP sui ruoli account e ciclo di fatturazione a soglia |
+| P37 | Ads Manager UI | Wizard in 6 passi, KPI, campagne, audience, creatività, fatturazione a posteriori sulla carta salvata e report | Campagna creata dal wizard visibile in review admin; addebito a soglia visibile |
+| P38 | Ads delivery | Selezione, ranking, frequency cap, pacing, consumo budget, tracking client+server, "Perché vedo questa inserzione?" | Impression/click accumulano spesa fatturabile; cap rispettato |
+| P39 | Boost + placements | Boost in un tocco; card sponsorizzate native in feed, marketplace, eventi e rail | Post sponsorizzato mostrato a un altro utente; spesa inclusa nell'addebito a soglia |
 
 ## Phase 5 — Admin console (weeks 6–27, parallel)
 | # | Prompt | Produces | Acceptance |
@@ -80,4 +82,11 @@ Order chosen by the owner: graphics first (app, then admin console) with designe
 | P46 | Live + calls | LiveKit live with chat, 1:1 audio/video | Live with 2 viewers; iOS ↔ web call |
 | P47 | Advanced content | Articles for pages, scheduled posts (pg_cron), memories, GIF (Tenor) | Scheduled post publishes on time |
 | P48 | Full i18n + auto-translation | Complete IT/EN/FR/ES/DE, DeepL translation of posts/messages with cache | Lint: 0 hardcoded strings; German post readable in Italian |
+| P48b | Accesso social | Google, Apple (nativo su iOS), Facebook via Supabase Auth OAuth; Microsoft predisposto; "Completa il profilo" per chi entra con un provider; metodi di accesso in Impostazioni; console Accesso | Accesso con Google su web e Android, Apple su iPhone e web, Facebook; profilo completato con l'età; identità visibili in Impostazioni e in console |
 | P49 | Release | PWA, performance, accessibility, store listing 18+, privacy, final review | TestFlight + Play Internal approved; Lighthouse > 90 |
+
+## Post-lancio
+| # | Prompt | Produces | Acceptance |
+|---|---|---|---|
+| P50 | Hardening | Sicurezza e prestazioni del database (revoche di privilegi, timeout, indici FK, policy RLS InitPlan) — solo SQL, eseguito dallo sviluppatore, nessuna modifica all'app | Checklist di lancio verde |
+| P51 | Lingua e paesi del mondo | lingua dal dispositivo con fallback inglese; tutti i paesi ISO con nomi tradotti; regione e dati venatori solo dove esistono; valute con cambio BCE | Browser in tedesco → app in tedesco; browser in portoghese → inglese; iscrizione dal Kenya senza errori |

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "261012257359",
+    "project_id": "hb-social-5d72a",
+    "storage_bucket": "hb-social-5d72a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:261012257359:android:3b457ce7a6f3453a79483a",
+        "android_client_info": {
+          "package_name": "it.huntingbook.hbsocial"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB1lEp4g8uv11fK6MTWf5dj-Xl3sWIY4-s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

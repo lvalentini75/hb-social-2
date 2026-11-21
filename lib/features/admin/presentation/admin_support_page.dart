@@ -1,0 +1,23 @@
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hb_social/core/theme/app_theme.dart';
+import 'package:hb_social/core/widgets/hb_button.dart';
+import 'package:hb_social/core/widgets/hb_card.dart';
+import 'package:hb_social/core/widgets/hb_empty_state.dart';
+import 'package:hb_social/core/widgets/hb_input.dart';
+import 'package:hb_social/core/widgets/hb_status_chip.dart';
+import 'package:hb_social/features/admin/domain/admin_p43_models.dart';
+import 'package:hb_social/features/admin/presentation/admin_system_page.dart';
+import 'package:hb_social/features/admin/presentation/widgets/admin_list_page.dart';
+import 'package:hb_social/features/admin/providers/admin_p43_providers.dart';
+
+class AdminSupportPage extends ConsumerStatefulWidget { const AdminSupportPage({super.key}); @override ConsumerState<AdminSupportPage> createState()=>_AdminSupportPageState(); }
+class _AdminSupportPageState extends ConsumerState<AdminSupportPage> {
+  String status='open'; AdminSupportTicket? selected; late Future<List<AdminSupportTicket>> future=load();
+  Future<List<AdminSupportTicket>> load()=>ref.read(adminP43RepositoryProvider).supportTickets(status:status);
+  void refresh()=>setState(()=>future=load());
+  @override Widget build(BuildContext context)=>Row(crossAxisAlignment:CrossAxisAlignment.start,children:[Expanded(child:AdminListPage(title:'admin.support.title'.tr(),description:'admin.support.subtitle'.tr(),filters:Wrap(spacing:8,children:[for(final item in const ['open','pending','answered','closed','all']) ChoiceChip(label:Text('admin.support.status.$item'.tr()),selected:status==item,onSelected:(_){status=item;refresh();})]),emptyMessage:'admin.support.empty'.tr(),content:FutureBuilder<List<AdminSupportTicket>>(future:future,builder:(context,snapshot){final items=snapshot.data??const[];if(snapshot.hasError)return HBEmptyState(icon:Icons.error_outline,title:'admin.support.error'.tr(),message:'admin.support.error_help'.tr());return Column(children:[for(final item in items)Padding(padding:const EdgeInsets.only(bottom:8),child:HBCard(child:ListTile(onTap:()=>setState(()=>selected=item),title:Text(item.subject),subtitle:Text('support.category.${item.category}'.tr()),trailing:HBStatusChip(kind:item.slaStatus=='overdue'?HBStatusKind.rejected:HBStatusKind.pending,label:'admin.support.sla.${item.slaStatus}'.tr()))))]);}))),if(selected!=null)SizedBox(width:460,child:AdminSupportDetail(ticket:selected!,onClose:()=>setState(()=>selected=null),onSaved:refresh))]);
+}
+class AdminSupportDetail extends ConsumerStatefulWidget { final AdminSupportTicket ticket;final VoidCallback onClose,onSaved;const AdminSupportDetail({super.key,required this.ticket,required this.onClose,required this.onSaved});@override ConsumerState<AdminSupportDetail>createState()=>_AdminSupportDetailState();}
+class _AdminSupportDetailState extends ConsumerState<AdminSupportDetail>{final reply=TextEditingController();bool internal=false,close=false,sending=false;@override void dispose(){reply.dispose();super.dispose();}@override Widget build(BuildContext context)=>HBCard(child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[Row(children:[Expanded(child:Text(widget.ticket.subject,style:context.textStyles.titleMedium)),IconButton(onPressed:widget.onClose,icon:const Icon(Icons.close))]),Expanded(child:FutureBuilder<List<Map<String,dynamic>>>(future:ref.read(adminP43RepositoryProvider).supportMessages(widget.ticket.id),builder:(context,snapshot)=>ListView(children:[for(final item in snapshot.data??const[])HBCard(color:item['is_internal']==true?LightModeColors.lightWarning.withValues(alpha:.12):LightModeColors.surface,child:Text(item['body']?.toString()??''))]))),HBInput(controller:reply,maxLines:4,hint:'admin.support.reply'.tr()),SwitchListTile(title:Text('admin.support.internal'.tr()),value:internal,onChanged:(v)=>setState(()=>internal=v)),CheckboxListTile(title:Text('admin.support.close_after'.tr()),value:close,onChanged:(v)=>setState(()=>close=v??false)),HBButton.primary(label:'admin.support.send'.tr(),isLoading:sending,onPressed:send)]));Future<void>send()async{setState(()=>sending=true);try{await ref.read(adminP43RepositoryProvider).supportReply(widget.ticket.id,reply.text,internal:internal,close:close);widget.onSaved();widget.onClose();}catch(error){if(mounted)p43Error(context,error);}finally{if(mounted)setState(()=>sending=false);}}}

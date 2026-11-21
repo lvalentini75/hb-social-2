@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -18,21 +18,43 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="HB Social è la community internazionale dei cacciatori: persone, territori, calendari, diario ed eventi.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+  <meta name="theme-color" content="#1F4A3A">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="HB Social">
+  <meta property="og:description" content="La community internazionale dei cacciatori.">
+  <meta property="og:url" content="https://huntingbook.app/">
+  <meta property="og:image" content="/icons/Icon-512.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="HB Social">
+  <meta name="twitter:description" content="La community internazionale dei cacciatori.">
+  <meta name="twitter:image" content="/icons/Icon-512.png">
+  <link rel="preconnect" href="https://vbgktgujpwygqfjornnw.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://video.bunnycdn.com" crossorigin>
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="dreamflow_counter">
+  <meta name="apple-mobile-web-app-title" content="HB Social">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>dreamflow_counter</title>
+  <title>HB Social</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <div id="hb-loader" role="status" aria-label="Caricamento HB Social" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;color:#1F4A3A;font:700 28px system-ui,sans-serif">HB Social</div>
+  <noscript>HB Social richiede JavaScript. Attivalo per usare l'app.</noscript>
+  <script>
+    try {
+      const locale = localStorage.getItem('easy_localization') || navigator.language || 'it';
+      document.documentElement.lang = locale.substring(0, 2);
+    } catch (_) {}
+    window.addEventListener('flutter-first-frame', () => document.getElementById('hb-loader')?.remove());
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

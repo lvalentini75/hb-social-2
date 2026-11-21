@@ -18,8 +18,13 @@ class AdminListPage extends StatelessWidget {
   final String emptyMessage;
   final bool isLoading;
   final Widget? content;
+  final List<VoidCallback?> rowCallbacks;
+  final bool hasMore;
+  final bool isLoadingMore;
+  final VoidCallback? onLoadMore;
+  final VoidCallback? onRetry;
 
-  const AdminListPage({super.key, required this.title, required this.description, this.actions = const [], required this.filters, this.kpis = const [], this.headers, this.rows = const [], this.columnWidths, required this.emptyMessage, this.isLoading = false, this.content});
+  const AdminListPage({super.key, required this.title, required this.description, this.actions = const [], required this.filters, this.kpis = const [], this.headers, this.rows = const [], this.columnWidths, required this.emptyMessage, this.isLoading = false, this.content, this.rowCallbacks = const [], this.hasMore = false, this.isLoadingMore = false, this.onLoadMore, this.onRetry});
 
   @override
   Widget build(BuildContext context) => CustomScrollView(
@@ -38,9 +43,9 @@ class AdminListPage extends StatelessWidget {
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 children: [
-                  content ?? AdminDataTable(headers: headers!, rows: rows, emptyMessage: emptyMessage, isLoading: isLoading, columnWidths: columnWidths),
+                   content ?? (onRetry != null ? Center(child: Padding(padding: const EdgeInsets.all(AppSpacing.xl), child: HBButton.secondary(label: 'common.retry'.tr(), onPressed: onRetry, icon: Icons.refresh))) : AdminDataTable(headers: headers!, rows: rows, emptyMessage: emptyMessage, isLoading: isLoading, columnWidths: columnWidths, rowCallbacks: rowCallbacks)),
                   const Divider(height: AppSpacing.lg),
-                  const AdminPaginationFooter(),
+                   AdminPaginationFooter(hasMore: hasMore, isLoading: isLoadingMore, onLoadMore: onLoadMore),
                 ],
               ),
             ),
@@ -72,7 +77,8 @@ class AdminListHeader extends StatelessWidget {
 class AdminKpiValue {
   final String label;
   final String value;
-  const AdminKpiValue({required this.label, required this.value});
+  final Widget? detail;
+  const AdminKpiValue({required this.label, required this.value, this.detail});
 }
 
 class AdminKpiRow extends StatelessWidget {
@@ -88,13 +94,16 @@ class AdminKpiRow extends StatelessWidget {
       childAspectRatio: constraints.maxWidth >= 800 ? 3.6 : 2.8,
       crossAxisSpacing: AppSpacing.sm,
       mainAxisSpacing: AppSpacing.sm,
-      children: [for (final value in values) HBCard(radius: AppRadius.sm, padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm), child: Row(children: [Expanded(child: Text(value.label, maxLines: 2, overflow: TextOverflow.ellipsis, style: context.textStyles.bodySmall?.withColor(LightModeColors.lightOnSurfaceVariant))), Text(value.value, style: context.textStyles.titleLarge?.withColor(LightModeColors.lightOnSurface).bold)]))],
+      children: [for (final value in values) HBCard(radius: AppRadius.sm, padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm), child: Row(children: [Expanded(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [Text(value.label, maxLines: 2, overflow: TextOverflow.ellipsis, style: context.textStyles.bodySmall?.withColor(LightModeColors.lightOnSurfaceVariant)), if (value.detail != null) ...[const SizedBox(height: 4), value.detail!]])), Text(value.value, style: context.textStyles.titleLarge?.withColor(LightModeColors.lightOnSurface).bold)]))],
     ),
   );
 }
 
 class AdminPaginationFooter extends StatelessWidget {
-  const AdminPaginationFooter({super.key});
+  final bool hasMore;
+  final bool isLoading;
+  final VoidCallback? onLoadMore;
+  const AdminPaginationFooter({super.key, this.hasMore = false, this.isLoading = false, this.onLoadMore});
 
   @override
   Widget build(BuildContext context) => Wrap(
@@ -102,12 +111,7 @@ class AdminPaginationFooter extends StatelessWidget {
     crossAxisAlignment: WrapCrossAlignment.center,
     spacing: AppSpacing.sm,
     runSpacing: AppSpacing.sm,
-    children: [
-      Text('admin.common.pagination'.tr(), style: context.textStyles.bodySmall?.withColor(LightModeColors.lightOnSurfaceVariant)),
-      const AdminCompactDropdown(label: '25', items: ['25', '50', '100'], enabled: false),
-      HBButton.icon(icon: Icons.chevron_left, onPressed: null, size: HBButtonSize.sm),
-      HBButton.icon(icon: Icons.chevron_right, onPressed: null, size: HBButtonSize.sm),
-    ],
+     children: [HBButton.secondary(label: 'admin.p05b.loadMore'.tr(), onPressed: hasMore && !isLoading ? onLoadMore : null, icon: isLoading ? Icons.hourglass_top : Icons.add, size: HBButtonSize.sm)],
   );
 }
 

@@ -16,7 +16,13 @@ class HBSkeleton extends StatefulWidget {
 }
 
 class _HBSkeletonState extends State<HBSkeleton> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1400))..repeat();
+  late final AnimationController _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) { _controller.stop(); _controller.value = 0; } else if (!_controller.isAnimating) { _controller.repeat(); }
+  }
 
   @override
   void dispose() {

@@ -36,9 +36,7 @@ class WelcomeActions extends StatelessWidget {
         const WelcomeLegalNote(),
         if (Env.previewEnabled) ...[
           const SizedBox(height: AppSpacing.md),
-          Center(
-            child: HBButton.ghost(label: 'welcome.explore_app'.tr(), size: HBButtonSize.sm, onPressed: onExploreApp),
-          ),
+          HBButton.soft(label: 'welcome.explore_app'.tr(), icon: Icons.explore_outlined, onPressed: onExploreApp),
         ],
       ],
     );

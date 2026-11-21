@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:hb_social/core/theme/app_colors.dart';
 import 'package:hb_social/core/theme/app_radius.dart';
 import 'package:hb_social/core/theme/app_typography.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 export 'package:hb_social/core/theme/app_colors.dart';
 export 'package:hb_social/core/theme/app_radius.dart';
 export 'package:hb_social/core/theme/app_shadows.dart';
 export 'package:hb_social/core/theme/app_spacing.dart';
 export 'package:hb_social/core/theme/app_typography.dart';
+export 'package:hb_social/core/theme/app_motion.dart';
 
 // =============================================================================
 // THEMES — tokens live in app_colors.dart / app_typography.dart / app_radius.dart
@@ -55,6 +57,8 @@ ThemeData get lightTheme => ThemeData(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.card)),
   ),
   dividerTheme: const DividerThemeData(color: LightModeColors.lightDivider, thickness: 1, space: 1),
+  fontFamily: GoogleFonts.inter().fontFamily,
+  focusColor: LightModeColors.lightPrimary,
   textTheme: buildTextTheme(Brightness.light),
 );
 

@@ -13,46 +13,36 @@ class HBStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    late final Color background;
     late final Color foreground;
     switch (kind) {
       case HBStatusKind.pending:
-        background = LightModeColors.lightWarning.withValues(alpha: 0.12);
         foreground = LightModeColors.lightWarning;
         break;
       case HBStatusKind.approved:
-        background = LightModeColors.lightSuccess.withValues(alpha: 0.12);
         foreground = LightModeColors.lightSuccess;
         break;
       case HBStatusKind.rejected:
-        background = LightModeColors.lightError.withValues(alpha: 0.12);
         foreground = LightModeColors.lightError;
         break;
       case HBStatusKind.info:
-        background = LightModeColors.lightInfo.withValues(alpha: 0.12);
         foreground = LightModeColors.lightInfo;
         break;
       case HBStatusKind.neutral:
-        background = LightModeColors.lightBackgroundSoft;
-        foreground = LightModeColors.lightOnSurfaceVariant;
+        foreground = LightModeColors.lightNeutralStatus;
         break;
       case HBStatusKind.moderator:
-        background = LightModeColors.lightInfo.withValues(alpha: 0.12);
         foreground = LightModeColors.lightInfo;
         break;
       case HBStatusKind.admin:
-        background = LightModeColors.lightPrimarySoft;
         foreground = LightModeColors.lightPrimary;
         break;
       case HBStatusKind.superAdmin:
-        background = LightModeColors.lightForest;
-        foreground = Colors.white;
+        foreground = LightModeColors.lightForest;
         break;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
-      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(AppRadius.pill)),
-      child: Text(label, style: context.textStyles.labelSmall?.withColor(foreground).semiBold),
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 8, height: 8, decoration: BoxDecoration(color: foreground, shape: BoxShape.circle)), const SizedBox(width: 6), Text(label, style: context.textStyles.labelMedium?.withColor(LightModeColors.lightOnSurface).medium)]),
     );
   }
 }

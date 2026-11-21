@@ -11,6 +11,6 @@ class AppLocales {
 
   static const List<Locale> supported = [it, en, fr, es, de];
 
-  static const Locale fallback = it;
+  static const Locale fallback = en;
   static const String translationsPath = 'assets/translations';
 }

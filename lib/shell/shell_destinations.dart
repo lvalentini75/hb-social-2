@@ -13,45 +13,40 @@ class ShellDestination {
   int get branchIndex => AppRoutes.branchIndexOf(path)!;
 }
 
-/// The main block of the web sidebar (search and notifications live in the
-/// header instead; hunting and "mine" destinations have their own sections
-/// below, profile lives in the sidebar's top profile card and the account
-/// menu).
-const List<ShellDestination> sidebarMainDestinations = [
-  ShellDestination(path: AppRoutes.home, icon: Icons.home_rounded, labelKey: 'nav.home'),
-  ShellDestination(path: AppRoutes.groups, icon: Icons.groups_2_outlined, labelKey: 'nav.groups'),
-  ShellDestination(path: AppRoutes.forum, icon: Icons.forum_outlined, labelKey: 'nav.forum'),
-  ShellDestination(path: AppRoutes.pages, icon: Icons.article_outlined, labelKey: 'nav.pages'),
-  ShellDestination(path: AppRoutes.marketplace, icon: Icons.storefront_outlined, labelKey: 'nav.marketplace'),
+/// PD4 main block of the web navigation panel. Only destinations that already
+/// own a route appear here ("Segnalibri" has no route yet, so it is omitted).
+final List<ShellDestination> sidebarMainDestinations = [
+  const ShellDestination(path: AppRoutes.home, icon: Icons.home_rounded, labelKey: 'nav.home'),
+  const ShellDestination(path: AppRoutes.search, icon: Icons.explore_outlined, labelKey: 'nav.explore'),
+  const ShellDestination(path: AppRoutes.groups, icon: Icons.groups_2_outlined, labelKey: 'nav.groups'),
+  const ShellDestination(path: AppRoutes.forum, icon: Icons.forum_outlined, labelKey: 'nav.forum'),
+  const ShellDestination(path: AppRoutes.pages, icon: Icons.article_outlined, labelKey: 'nav.pages_nav'),
+  const ShellDestination(path: AppRoutes.marketplace, icon: Icons.storefront_outlined, labelKey: 'nav.marketplace'),
   ShellDestination(path: AppRoutes.events, icon: Icons.event_outlined, labelKey: 'nav.events'),
-  ShellDestination(path: AppRoutes.messages, icon: Icons.chat_bubble_outline_rounded, labelKey: 'nav.messages'),
+  const ShellDestination(path: AppRoutes.messages, icon: Icons.chat_bubble_outline_rounded, labelKey: 'nav.messages'),
+  const ShellDestination(path: AppRoutes.notifications, icon: Icons.notifications_none_rounded, labelKey: 'nav.notifications'),
+  const ShellDestination(path: AppRoutes.profile, icon: Icons.person_outline_rounded, labelKey: 'nav.profile'),
 ];
 
-/// The "A CACCIA" sidebar section links directly to each hunting tool.
+/// The "Strumenti di caccia" section links directly to each hunting tool.
 const List<ShellDestination> sidebarHuntingDestinations = [
   ShellDestination(path: AppRoutes.huntingDiary, icon: Icons.menu_book_outlined, labelKey: 'sidebar.hunting_diary'),
   ShellDestination(path: AppRoutes.huntingMap, icon: Icons.map_outlined, labelKey: 'sidebar.hunting_map'),
+  ShellDestination(path: AppRoutes.sightings, icon: Icons.visibility_outlined, labelKey: 'sightings.nav'),
   ShellDestination(path: AppRoutes.huntingDogs, icon: Icons.pets_outlined, labelKey: 'sidebar.hunting_dogs'),
+  ShellDestination(path: AppRoutes.huntingZone, icon: Icons.terrain_outlined, labelKey: 'sidebar.hunting_zones'),
   ShellDestination(path: AppRoutes.huntingCalendar, icon: Icons.calendar_month_outlined, labelKey: 'sidebar.hunting_calendar'),
 ];
 
-/// The "I MIEI" sidebar section, without counters until there is real data.
-const List<ShellDestination> sidebarMineDestinations = [
-  ShellDestination(path: AppRoutes.groups, icon: Icons.groups_2_outlined, labelKey: 'sidebar.my_groups'),
-  ShellDestination(path: AppRoutes.marketplace, icon: Icons.storefront_outlined, labelKey: 'sidebar.my_listings'),
-  ShellDestination(path: AppRoutes.events, icon: Icons.event_outlined, labelKey: 'sidebar.my_events'),
-];
-
 /// The 2 route destinations shown on each side of the mobile bottom bar's
-/// central create FAB. The 5th slot ("Altro") opens a bottom sheet instead
-/// of a branch, so it is not a [ShellDestination].
+/// central create FAB.
 const List<ShellDestination> bottomNavLeadingDestinations = [
   ShellDestination(path: AppRoutes.home, icon: Icons.home_rounded, labelKey: 'nav.home'),
-  ShellDestination(path: AppRoutes.groups, icon: Icons.groups_2_outlined, labelKey: 'nav.groups'),
+  ShellDestination(path: AppRoutes.search, icon: Icons.search_rounded, labelKey: 'nav.search'),
 ];
 
 const ShellDestination bottomNavTrailingDestination = ShellDestination(
-  path: AppRoutes.marketplace,
-  icon: Icons.storefront_outlined,
-  labelKey: 'nav.marketplace',
+  path: AppRoutes.notifications,
+  icon: Icons.notifications_none_rounded,
+  labelKey: 'nav.notifications',
 );

@@ -1,106 +1,99 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hb_social/core/theme/app_theme.dart';
 import 'package:hb_social/core/widgets/composer_sheet.dart';
 import 'package:hb_social/core/widgets/hb_avatar.dart';
-import 'package:hb_social/core/widgets/hb_card.dart';
+import 'package:hb_social/features/profile/providers/profile_providers.dart';
 
-/// Web-only composer row at the top of the feed. It never edits anything
-/// inline: tapping the field or one of its actions opens the composer
-/// placeholder (see P09). On mobile the composer disappears; only the FAB
-/// in the bottom nav remains.
-class FeedComposerBar extends StatelessWidget {
+/// PD4 composer card. On web the action row uses the four accent colours;
+/// on mobile the same row stays monochrome with three actions.
+class FeedComposerBar extends ConsumerWidget {
   const FeedComposerBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return HBCard(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(currentProfileProvider).value;
+    final compact = MediaQuery.sizeOf(context).width < AppBreakpoints.mobile;
+    final radius = compact ? AppRadius.cardMobile : AppRadius.cardWeb;
+    return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              const HBAvatar(avatarSize: HBAvatarSize.md, isGuest: true),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Material(
-                  color: LightModeColors.lightBackgroundSoft,
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                    onTap: () => showComposerSheet(context),
-                    child: Container(
-                      height: 44,
-                      alignment: Alignment.centerLeft,
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                      child: Text(
-                        'home.composer_placeholder'.tr(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.textStyles.bodyMedium?.withColor(LightModeColors.lightOnSurfaceVariant),
-                      ),
-                    ),
-                  ),
-                ),
+      decoration: BoxDecoration(color: LightModeColors.surface, borderRadius: BorderRadius.circular(radius), boxShadow: AppShadows.card),
+      child: Column(children: [
+        Row(children: [
+          HBAvatar(name: profile?.displayName ?? '', imageUrl: profile?.avatarUrl, size: compact ? 44 : 48, isGuest: profile == null),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(child: Material(
+            color: LightModeColors.surfaceSoft,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+              onTap: () => showComposerSheet(context),
+              child: Container(
+                height: compact ? 48 : 56,
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: Text(compact ? 'home.composer_placeholder_mobile'.tr() : 'home.composer_placeholder_web'.tr(), maxLines: 1, overflow: TextOverflow.ellipsis, style: AppText.body.withColor(LightModeColors.textSecondary)),
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          const Divider(height: 1),
-          const SizedBox(height: AppSpacing.xs),
-          Row(
-            children: [
-              Expanded(
-                child: _ComposerAction(icon: Icons.photo_library_outlined, label: 'home.composer_photo_video'.tr(), onTap: () => showComposerSheet(context)),
-              ),
-              Expanded(
-                child: _ComposerAction(icon: Icons.place_outlined, label: 'home.composer_checkin'.tr(), onTap: () => showComposerSheet(context)),
-              ),
-              Expanded(
-                child: _ComposerAction(icon: Icons.sell_outlined, label: 'home.composer_sell'.tr(), onTap: () => showComposerSheet(context)),
-              ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          )),
+        ]),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          height: compact ? 44 : 48,
+          child: compact
+              ? Row(children: [
+                  Expanded(child: ComposerAction(icon: Icons.photo_library_outlined, label: 'home.composer_photo_video'.tr(), iconSize: 20, onTap: () => showComposerSheet(context))),
+                  const ComposerActionDivider(),
+                  Expanded(child: ComposerAction(icon: Icons.place_outlined, label: 'home.composer_checkin'.tr(), iconSize: 20, onTap: () => showComposerSheet(context))),
+                  const ComposerActionDivider(),
+                  Expanded(child: ComposerAction(icon: Icons.sell_outlined, label: 'home.composer_sell'.tr(), iconSize: 20, onTap: () => showComposerSheet(context))),
+                ])
+              : Row(children: [
+                  Expanded(child: ComposerAction(icon: Icons.photo_library_outlined, label: 'home.composer_photo_video'.tr(), color: LightModeColors.accentGreen, onTap: () => showComposerSheet(context))),
+                  const ComposerActionDivider(),
+                  Expanded(child: ComposerAction(icon: Icons.place_outlined, label: 'home.composer_checkin'.tr(), color: LightModeColors.accentBlue, onTap: () => showComposerSheet(context))),
+                  const ComposerActionDivider(),
+                  Expanded(child: ComposerAction(icon: Icons.bar_chart_rounded, label: 'home.composer_poll'.tr(), color: LightModeColors.accentOrange, onTap: () => showComposerSheet(context))),
+                  const ComposerActionDivider(),
+                  Expanded(child: ComposerAction(icon: Icons.calendar_today_outlined, label: 'home.composer_event'.tr(), color: LightModeColors.accentPurple, onTap: () => showComposerSheet(context))),
+                  const ComposerActionDivider(),
+                  Expanded(child: ComposerAction(icon: Icons.more_horiz_rounded, label: 'nav.more'.tr(), onTap: () => showCreateMenu(context))),
+                ]),
+        ),
+      ]),
     );
   }
 }
 
-class _ComposerAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _ComposerAction({required this.icon, required this.label, required this.onTap});
+class ComposerActionDivider extends StatelessWidget {
+  const ComposerActionDivider({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(AppRadius.sm),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 18, color: LightModeColors.lightOnSurfaceVariant),
-              const SizedBox(width: AppSpacing.xs),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.textStyles.labelMedium?.withColor(LightModeColors.lightOnSurfaceVariant),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const SizedBox(width: 1, height: 24, child: ColoredBox(color: LightModeColors.divider));
+}
+
+class ComposerAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color? color;
+  final double iconSize;
+  final VoidCallback onTap;
+
+  const ComposerAction({super.key, required this.icon, required this.label, required this.onTap, this.color, this.iconSize = 22});
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: Colors.transparent,
+    borderRadius: BorderRadius.circular(AppRadius.nav),
+    child: InkWell(
+      borderRadius: BorderRadius.circular(AppRadius.nav),
+      onTap: onTap,
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(icon, size: iconSize, color: color ?? LightModeColors.textSecondary),
+        const SizedBox(width: AppSpacing.xs),
+        Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: (color == null ? AppText.label : AppText.ui).withColor(LightModeColors.text))),
+      ]),
+    ),
+  );
 }

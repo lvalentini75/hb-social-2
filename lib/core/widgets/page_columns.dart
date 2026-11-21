@@ -2,45 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:hb_social/core/theme/app_theme.dart';
 import 'package:hb_social/core/widgets/hb_card.dart';
 
-/// Shared two-column web layout: a center column (max [AppBreakpoints.feedMaxWidth])
-/// and an optional [AppBreakpoints.railWidth] right rail, separated by a
-/// fixed gap. The rail only appears from [AppBreakpoints.railBreakpoint] up;
-/// below that it is dropped entirely rather than stacked under the center
-/// column. Every page builds its own `rail` (if any) — there is no longer a
-/// single shared right rail injected by the shell.
+/// Compatibility wrapper for page content.
+///
+/// Web columns are owned exclusively by [WebShell]. Legacy sizing and rail
+/// arguments remain temporarily source-compatible but no longer create a
+/// local grid.
 class PageColumns extends StatelessWidget {
   final Widget center;
   final Widget? rail;
 
-  const PageColumns({super.key, required this.center, this.rail});
+  /// Narrow layouts are edge-to-edge: the shell adds no horizontal padding.
+  /// Pages that are not media-first keep a [AppSpacing.md] gutter; set this to
+  /// false when the page manages its own gutters (e.g. the full-bleed feed).
+  final bool gutter;
+  final double centerMaxWidth;
+  final double centerMinWidth;
+  final double railMinWidth;
+  final double railMaxWidth;
+  final double railBreakpoint;
+
+  const PageColumns({super.key, required this.center, this.rail, this.gutter = true, this.centerMaxWidth = AppBreakpoints.feedMaxWidth, this.centerMinWidth = 0, this.railMinWidth = AppBreakpoints.railWidth, this.railMaxWidth = AppBreakpoints.railWidth, this.railBreakpoint = AppBreakpoints.railBreakpoint, layout});
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final showRail = rail != null && MediaQuery.sizeOf(context).width >= AppBreakpoints.railBreakpoint;
-        final maxWidth = showRail ? AppBreakpoints.feedMaxWidth + AppSpacing.lg + AppBreakpoints.railWidth : AppBreakpoints.feedMaxWidth;
-        return Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: maxWidth),
-            child: showRail
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(child: center),
-                      const SizedBox(width: AppSpacing.lg),
-                      SizedBox(
-                        width: AppBreakpoints.railWidth,
-                        child: Padding(padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg), child: rail!),
-                      ),
-                    ],
-                  )
-                : center,
-          ),
-        );
-      },
-    );
+    final mobilePadding = gutter && MediaQuery.sizeOf(context).width < AppBreakpoints.mobile ? AppSpacing.md : 0.0;
+    return Align(alignment: Alignment.topLeft, child: Padding(padding: EdgeInsets.symmetric(horizontal: mobilePadding), child: SizedBox(width: double.infinity, child: center)));
   }
 }
 
@@ -61,7 +47,7 @@ class PageRailCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label.toUpperCase(),
+            label,
             style: context.textStyles.labelSmall?.withColor(LightModeColors.lightTextTertiary).copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.4),
           ),
           const SizedBox(height: AppSpacing.sm),

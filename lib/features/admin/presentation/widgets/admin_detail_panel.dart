@@ -14,7 +14,7 @@ class AdminDetailPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mobile = MediaQuery.sizeOf(context).width < 900;
+    final mobile = MediaQuery.sizeOf(context).width < 1200;
     return Material(
       color: Colors.white,
       elevation: 20,

@@ -37,13 +37,13 @@ class HBEmptyState extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: context.textStyles.titleMedium?.withColor(LightModeColors.lightOnSurface).copyWith(fontSize: 17, fontWeight: FontWeight.w700),
+            style: context.textStyles.headlineMedium?.withColor(LightModeColors.lightOnSurface).copyWith(fontSize: 24, fontWeight: FontWeight.w400),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: context.textStyles.bodySmall?.withColor(LightModeColors.lightOnSurfaceVariant),
+            style: context.textStyles.bodyMedium?.withColor(LightModeColors.lightOnSurfaceVariant),
           ),
           if (action != null) ...[
             const SizedBox(height: AppSpacing.lg),

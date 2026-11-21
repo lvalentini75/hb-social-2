@@ -6,12 +6,16 @@ import 'package:hb_social/core/widgets/hb_skeleton.dart';
 /// Loading placeholder for a single feed post: avatar + two header lines,
 /// two text lines and a media block, all rendered with [HBSkeleton].
 class FeedPostSkeleton extends StatelessWidget {
-  const FeedPostSkeleton({super.key});
+  final bool edgeToEdge;
+
+  const FeedPostSkeleton({super.key, this.edgeToEdge = false});
 
   @override
   Widget build(BuildContext context) {
     return HBCard(
       padding: const EdgeInsets.all(AppSpacing.md),
+      radius: edgeToEdge ? 0 : AppRadius.cardWeb,
+      shadow: edgeToEdge ? const [] : AppShadows.card,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

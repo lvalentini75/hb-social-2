@@ -1,4 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hb_social/core/services/supabase_client_provider.dart';
+import 'package:hb_social/features/onboarding/data/onboarding_repository.dart';
+import 'package:hb_social/features/onboarding/domain/suggestion.dart';
 
 /// In-memory state for the 3-step onboarding flow.
 class OnboardingState {
@@ -41,3 +44,8 @@ class OnboardingNotifier extends Notifier<OnboardingState> {
 }
 
 final onboardingProvider = NotifierProvider.autoDispose<OnboardingNotifier, OnboardingState>(OnboardingNotifier.new);
+
+final interestsRepositoryProvider = Provider<InterestsRepository>((ref) => InterestsRepository(ref.watch(supabaseClientProvider)));
+final suggestionsRepositoryProvider = Provider<SuggestionsRepository>((ref) => SuggestionsRepository(ref.watch(supabaseClientProvider)));
+final suggestedProfilesProvider = FutureProvider.autoDispose<List<SuggestedProfile>>((ref) => ref.watch(suggestionsRepositoryProvider).profiles());
+final suggestedGroupsProvider = FutureProvider.autoDispose<List<SuggestedGroup>>((ref) => ref.watch(suggestionsRepositoryProvider).groups());

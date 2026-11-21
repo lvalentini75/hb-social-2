@@ -20,9 +20,7 @@ class _HuntingMapPageState extends State<HuntingMapPage> {
 
   @override
   Widget build(BuildContext context) {
-    final showRail = MediaQuery.sizeOf(context).width >= AppBreakpoints.railBreakpoint;
     final map = HuntingMapCanvas(selectedLayer: _selectedLayer, onLayerChanged: (index) => setState(() => _selectedLayer = index));
-    if (showRail) return PageColumns(center: Padding(padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg), child: map), rail: const HuntingMapPanel());
     return Stack(children: [Padding(padding: const EdgeInsets.symmetric(vertical: AppSpacing.md), child: map), const HuntingMapBottomSheet()]);
   }
 }

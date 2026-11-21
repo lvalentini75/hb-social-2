@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hb_social/core/theme/app_theme.dart';
 
-/// The square "HB" brand mark used on the welcome screen and the app header.
+/// The square "HB" brand mark (PD4): Bosco square, radius 12, white "HB" 700.
 class HbLogo extends StatelessWidget {
   final double size;
   final Color background;
@@ -9,27 +9,17 @@ class HbLogo extends StatelessWidget {
 
   const HbLogo({
     super.key,
-    this.size = 56,
-    this.background = LightModeColors.lightPrimary,
+    this.size = 44,
+    this.background = LightModeColors.bosco,
     this.foreground = Colors.white,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(size * 0.28)),
-      alignment: Alignment.center,
-      child: Text(
-        'HB',
-        style: TextStyle(
-          color: foreground,
-          fontWeight: FontWeight.w700,
-          fontSize: size * 0.38,
-          letterSpacing: -0.5,
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(AppRadius.nav)),
+    alignment: Alignment.center,
+    child: Text('HB', style: appFont(size * 0.45, FontWeight.w700, spacing: -0.4, color: foreground)),
+  );
 }

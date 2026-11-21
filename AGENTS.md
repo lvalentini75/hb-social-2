@@ -35,10 +35,10 @@ assets/translations/{it,en,fr,es,de}.json
 docs/{ROADMAP.md, STATUS.md, DECISIONS.md, DESIGN_SYSTEM.md}
 
 ## Design system (full spec in docs/DESIGN_SYSTEM.md — tokens live in lib/core/theme/)
-Colors: page #F6F7F8, surface #FFFFFF, soft #F2F4F5, hover #EEF2EF, divider #E7EBE8, border #E3E7E4; text #111715, textSecondary #66706B, textTertiary #8A948F; primary #2E7D45, primaryDeep #225E34, primarySoft #EAF5EE, primaryOutline #A7CCB4; success #22A06B, warning #C98912, error #D14343, info #2E6BDE.
-Font Inter. Radius 10/14/18/22/28/999. Shadows level1–3 (never borders on cards). White first; green only for the single primary CTA per screen and active states; no gradients; media edge-to-edge; every list has empty/loading/error states.
+Colors: page/Nebbia #F2F4F1, surface #FFFFFF, soft #EDF1ED, hover/Muschio #E4EEE6, divider/border #DCE2DC; text/Carbone #16211B, textSecondary #5C6962, textTertiary #8B958E; primary/Loden #1F4D37, primaryHover/Bosco #2A6446, primaryDeep #173B2A, primarySoft #E4EEE6, primaryOutline #A9C4B2, accentBrass/Ottone #B08D57; success #1E8E5A, warning #C4891A, error #C2443B, info #2F5FD0, night/Notte #0F2219.
+Font: Plus Jakarta Sans (unica famiglia); gerarchia per peso e spaziatura, mai per famiglia. Radius 10/12/18/22/28/999. Cards use level2 shadows without borders (filetto only on hover); buttons and chips are pills. White first; green only for the single primary CTA and active states; brass only for verification and sponsorship; no gradients; media edge-to-edge; every list has empty/loading/error states; implicit motion 120–260 ms respects reduced motion.
 Shared widgets in `lib/core/widgets/`: HBCard, HBButton (primary/secondary/soft/ghost/icon), HBInput, HBChip, HBSegmentedTabs, HBEmptyState, HBBadge, HBAvatar, HBStatusChip. Build screens from these; never raw Material widgets for these roles.
-Admin console is the one place with a dark sidebar (#151C18); everything else is white-first.
+Admin console uses the Notte sidebar (#0F2219); everything else is white-first.
 
 ## Conventions
 - Repositories return models or throw `AppException(messageKey)`. Providers are Riverpod `AsyncNotifier`/`FutureProvider`.

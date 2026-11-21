@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hb_social/core/theme/app_theme.dart';
 import 'package:hb_social/core/widgets/page_columns.dart';
+import 'package:hb_social/core/widgets/hb_page_header.dart';
 
 /// One titled block of a [ListPageScaffold]'s [ListPageScaffold.sections]:
 /// an h2 title, an optional trailing "see all" text action and the section
@@ -27,38 +28,22 @@ class ListPageScaffold extends StatelessWidget {
   final Widget? filters;
   final List<ListPageSection>? sections;
   final Widget? body;
+  final Widget? sliverBody;
   final Widget? rail;
 
-  const ListPageScaffold({super.key, required this.title, this.subtitle, this.action, this.filters, this.sections, this.body, this.rail});
+  const ListPageScaffold({super.key, required this.title, this.subtitle, this.action, this.filters, this.sections, this.body, this.sliverBody, this.rail});
 
   @override
   Widget build(BuildContext context) {
     final center = CustomScrollView(
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+          padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.lg),
           sliver: SliverList.list(
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                   Expanded(
-                     child: Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                         Text(title, style: context.textStyles.headlineSmall?.copyWith(fontSize: 24, fontWeight: FontWeight.w700)),
-                         if (subtitle != null) ...[
-                           const SizedBox(height: AppSpacing.xs),
-                           Text(subtitle!, style: context.textStyles.bodyMedium?.withColor(LightModeColors.lightOnSurfaceVariant)),
-                         ],
-                       ],
-                     ),
-                   ),
-                  if (action != null) action!,
-                ],
-              ),
+              HBPageHeader(title: title, subtitle: subtitle, action: action),
               if (filters != null) ...[const SizedBox(height: AppSpacing.md), filters!],
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.md),
               if (sections != null)
                 for (final section in sections!) ...[
                   _SectionHeader(section: section),
@@ -71,6 +56,7 @@ class ListPageScaffold extends StatelessWidget {
             ],
           ),
         ),
+        if (sliverBody != null) SliverPadding(padding: const EdgeInsets.only(bottom: AppSpacing.xl), sliver: sliverBody!),
       ],
     );
     return PageColumns(center: center, rail: rail);

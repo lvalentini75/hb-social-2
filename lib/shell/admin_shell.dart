@@ -1,5 +1,4 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,9 +11,10 @@ import 'package:hb_social/core/widgets/hb_input.dart';
 import 'package:hb_social/core/widgets/hb_logo.dart';
 import 'package:hb_social/core/widgets/hb_status_chip.dart';
 import 'package:hb_social/features/admin/domain/admin_module.dart';
-import 'package:hb_social/features/admin/domain/admin_role.dart';
-import 'package:hb_social/features/admin/providers/admin_session_provider.dart';
-import 'package:hb_social/features/admin/providers/admin_preview_provider.dart';
+import 'package:hb_social/features/admin/providers/admin_access_provider.dart';
+import 'package:hb_social/features/auth/providers/auth_providers.dart';
+import 'package:hb_social/features/profile/providers/profile_providers.dart';
+import 'package:hb_social/features/ads/providers/ads_providers.dart';
 
 class AdminShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -28,6 +28,7 @@ class AdminShell extends ConsumerStatefulWidget {
 class _AdminShellState extends ConsumerState<AdminShell> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
   String periodKey = 'admin.topbar.period30';
+  bool deniedNoticeShown = false;
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +36,14 @@ class _AdminShellState extends ConsumerState<AdminShell> {
     final drawerMode = width < 900;
     final compact = width < 1280;
     final location = GoRouterState.of(context).uri.path;
-    final slug = location == '/admin' ? '' : location.replaceFirst('/admin/', '');
+    final slug = location == '/admin' ? '' : location.replaceFirst('/admin/', '').split('/').first;
     final module = adminModuleForSlug(slug) ?? adminModuleForSlug('')!;
+    if (!deniedNoticeShown && GoRouterState.of(context).uri.queryParameters['denied'] == '1') {
+      deniedNoticeShown = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('admin.p05.accessDenied'.tr())));
+      });
+    }
 
     return Scaffold(
       key: scaffoldKey,
@@ -71,19 +78,21 @@ class AdminSidebar extends ConsumerWidget {
 
   const AdminSidebar({super.key, required this.compact, required this.currentSlug});
 
-  String _path(BuildContext context, String slug) {
-    final query = GoRouterState.of(context).uri.query;
-    return '${slug.isEmpty ? '/admin' : '/admin/$slug'}${query.isEmpty ? '' : '?$query'}';
-  }
+  String _path(String slug) => slug.isEmpty ? '/admin' : '/admin/$slug';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final debugPreview = Env.previewEnabled && ref.watch(adminPreviewProvider);
-    final session = ref.watch(adminSessionProvider);
+    final access = ref.watch(adminAccessProvider).value;
+    final profile = ref.watch(currentProfileProvider).value;
     final width = compact ? 64.0 : 248.0;
+    final pendingAds = access?.canRead('ad-review') == true ? ref.watch(adReviewQueueProvider('pending')).value?.length ?? 0 : 0;
+    final visibleSections = [
+      for (final section in adminModuleSections)
+        AdminModuleSection(labelKey: section.labelKey, modules: section.modules.where((module) => access?.canRead(module.permissionSlug) ?? false).toList()),
+    ].where((section) => section.modules.isNotEmpty);
     return Container(
       width: width,
-      color: LightModeColors.adminSidebar,
+      color: LightModeColors.night,
       child: SafeArea(
         child: Column(
           children: [
@@ -102,7 +111,7 @@ class AdminSidebar extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('app.name'.tr(), style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
-                          Text('admin.consoleLabel'.tr().toUpperCase(), style: const TextStyle(color: LightModeColors.adminSidebarMuted, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.7)),
+                          Text('admin.consoleLabel'.tr(), style: const TextStyle(color: LightModeColors.adminSidebarMuted, fontSize: 12, fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ],
@@ -114,7 +123,7 @@ class AdminSidebar extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm, horizontal: AppSpacing.sm),
                 children: [
-                  for (final section in adminModuleSections) ...[
+                   for (final section in visibleSections) ...[
                     if (!compact) AdminSidebarSectionLabel(label: section.labelKey.tr()),
                     for (final module in section.modules)
                       AdminSidebarTile(
@@ -122,9 +131,9 @@ class AdminSidebar extends ConsumerWidget {
                         icon: module.icon,
                         label: module.titleKey.tr(),
                         selected: module.slug == currentSlug,
-                        count: 0,
+                         count: module.slug == 'ads' ? pendingAds : 0,
                         onTap: () {
-                          context.go(_path(context, module.slug));
+                           context.go(_path(module.slug));
                           if (Scaffold.maybeOf(context)?.isDrawerOpen ?? false) context.pop();
                         },
                       ),
@@ -135,15 +144,13 @@ class AdminSidebar extends ConsumerWidget {
             ),
             AdminSidebarAccountCard(
               compact: compact,
-              name: debugPreview ? 'admin.account.preview'.tr() : session.displayName ?? 'admin.account.guest'.tr(),
-              meta: debugPreview ? 'admin.account.previewMeta'.tr() : 'admin.account.unauthenticated'.tr(),
-              role: debugPreview ? null : session.role,
-              onTap: () => context.go('/admin/login'),
-              preview: debugPreview,
-              onExitPreview: () {
-                if (!Env.previewEnabled) return;
-                ref.read(adminPreviewProvider.notifier).state = false;
-                context.go('/admin/login');
+              name: profile?.displayName ?? profile?.username ?? '',
+              avatarUrl: profile?.avatarUrl,
+              roleName: access?.roleName ?? '',
+              mfaEnabled: access?.mfaEnabled ?? false,
+              onLogout: () async {
+                await ref.read(authRepositoryProvider).signOut();
+                if (context.mounted) context.go('/admin/login');
               },
             ),
           ],
@@ -161,7 +168,7 @@ class AdminSidebarSectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(AppSpacing.sm, AppSpacing.sm, AppSpacing.sm, AppSpacing.xs),
-    child: Text(label.toUpperCase(), style: const TextStyle(color: LightModeColors.adminSidebarMuted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.7)),
+    child: Text(label, style: const TextStyle(color: LightModeColors.adminSidebarMuted, fontSize: 12, fontWeight: FontWeight.w600)),
   );
 }
 
@@ -178,7 +185,7 @@ class AdminSidebarTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tile = Material(
-      color: selected ? LightModeColors.adminSidebarActive : Colors.transparent,
+      color: selected ? LightModeColors.bosco : Colors.transparent,
       borderRadius: BorderRadius.circular(AppRadius.xs),
       child: InkWell(
         onTap: onTap,
@@ -215,20 +222,19 @@ class AdminSidebarCountBadge extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
     decoration: BoxDecoration(color: LightModeColors.adminSidebarText.withValues(alpha: 0.16), borderRadius: BorderRadius.circular(AppRadius.pill)),
-    child: Text('$count', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+    child: Text(count >= 50 ? '50+' : '$count', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
   );
 }
 
 class AdminSidebarAccountCard extends StatelessWidget {
   final bool compact;
   final String name;
-  final String meta;
-  final AdminRole? role;
-  final VoidCallback onTap;
-  final bool preview;
-  final VoidCallback onExitPreview;
+  final String? avatarUrl;
+  final String roleName;
+  final bool mfaEnabled;
+  final VoidCallback onLogout;
 
-  const AdminSidebarAccountCard({super.key, required this.compact, required this.name, required this.meta, this.role, required this.onTap, required this.preview, required this.onExitPreview});
+  const AdminSidebarAccountCard({super.key, required this.compact, required this.name, this.avatarUrl, required this.roleName, required this.mfaEnabled, required this.onLogout});
 
   @override
   Widget build(BuildContext context) {
@@ -236,14 +242,14 @@ class AdminSidebarAccountCard extends StatelessWidget {
       color: Colors.white.withValues(alpha: 0.06),
       borderRadius: BorderRadius.circular(AppRadius.sm),
       child: InkWell(
-        onTap: preview ? null : onTap,
+        onTap: onLogout,
         borderRadius: BorderRadius.circular(AppRadius.sm),
         child: Padding(
           padding: EdgeInsets.all(compact ? 6 : AppSpacing.sm),
           child: Row(
             mainAxisAlignment: compact ? MainAxisAlignment.center : MainAxisAlignment.start,
             children: [
-              HBAvatar(size: 36, name: name, isGuest: preview || name == 'admin.account.guest'.tr()),
+              HBAvatar(size: 36, name: name, imageUrl: avatarUrl),
               if (!compact) ...[
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
@@ -251,32 +257,29 @@ class AdminSidebarAccountCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-                      if (role == null)
-                        Text(meta, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: LightModeColors.adminSidebarMuted, fontSize: 11))
-                      else
-                        Row(children: [Flexible(child: HBStatusChip(kind: role!.statusKind, label: role!.labelKey.tr())), Text(' · ${'admin.account.twoFactor'.tr()}', style: const TextStyle(color: LightModeColors.adminSidebarMuted, fontSize: 11))]),
+                      Row(children: [Flexible(child: HBStatusChip(kind: _roleKind(roleName), label: _roleKey(roleName).tr())), if (mfaEnabled) Text(' · ${'admin.account.twoFactor'.tr()}', style: const TextStyle(color: LightModeColors.adminSidebarMuted, fontSize: 12))]),
                     ],
                   ),
                 ),
-                const Icon(Icons.lock_outline, size: 18, color: LightModeColors.adminSidebarMuted),
+                const Icon(Icons.logout, size: 18, color: LightModeColors.adminSidebarMuted),
               ],
             ],
           ),
         ),
       ),
     );
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      child: preview
-          ? PopupMenuButton<bool>(
-              tooltip: 'admin.account.preview'.tr(),
-              onSelected: (_) => onExitPreview(),
-              itemBuilder: (context) => [PopupMenuItem<bool>(value: true, child: Text('admin.account.exitPreview'.tr()))],
-              child: card,
-            )
-          : card,
-    );
+    return Tooltip(message: 'auth.logout'.tr(), child: Padding(padding: const EdgeInsets.all(AppSpacing.sm), child: card));
   }
+
+  String _roleKey(String role) => 'admin.roles.${switch (role) { 'ads_reviewer' => 'adsReviewer', 'hunting_data_editor' => 'huntingDataEditor', _ => role }}';
+
+  HBStatusKind _roleKind(String role) => switch (role) {
+    'superadmin' => HBStatusKind.superAdmin,
+    'admin' => HBStatusKind.admin,
+    'moderator' || 'ads_reviewer' => HBStatusKind.moderator,
+    'finance' => HBStatusKind.pending,
+    _ => HBStatusKind.approved,
+  };
 }
 
 class AdminTopBar extends ConsumerWidget {
@@ -308,10 +311,6 @@ class AdminTopBar extends ConsumerWidget {
               decoration: BoxDecoration(color: LightModeColors.lightBackgroundSoft, borderRadius: BorderRadius.circular(AppRadius.pill)),
               child: Text('admin.topbar.development'.tr(), style: context.textStyles.labelSmall?.withColor(LightModeColors.lightOnSurfaceVariant)),
             ),
-          if (Env.previewEnabled && ref.watch(adminPreviewProvider)) ...[
-            const SizedBox(width: AppSpacing.xs),
-            HBStatusChip(kind: HBStatusKind.pending, label: 'admin.topbar.preview'.tr()),
-          ],
           const Spacer(),
           if (showSearch) ...[
             ConstrainedBox(
